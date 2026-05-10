@@ -1,0 +1,12 @@
+# Hugo 生成的文件
+public/
+resources/
+.hugo_build.lock
+
+# VSCode
+.vscode/
+
+# 其他临时文件
+*.swp
+*.swo
+*~
