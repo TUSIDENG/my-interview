@@ -92,22 +92,22 @@ graph TD
 * **Redis Stream Redis 5.0引入(消费组/支持回溯):**
   - 原理：消息持久化存储，消费组维护消费位置 (`last_delivered_id`)，支持 `XREAD` 和 `XREADGROUP`
   - 特点：可重复消费、消息不删除、支持多消费者分工
-  - 风险：内存有限，大量堆积会导致 Redis 内存溢出；无分布式扩展
+  - 风险：内存有限，大量堆积会导致 Redis 内存溢出；无分布式扩展。内存溢出时，会强行把最老的历史消息删除掉！
   - 适用：需要回溯的轻量日志、金融交易回放
 
 * **RabbitMQ (Push 模式 + ACK 确认):**
-  - 原理：服务器主动推送消息给消费者，消费者处理后返回 ACK
+  - 原理：服务器主动推送消息给消费者，消费者处理后返回 ACK。数据“阅后即焚”
   - 优点：实时性高，服务器控制速率；支持死信队列和重试
   - 缺点：消费者处理慢时容易堆积；推送过快会压垮消费者 (backpressure 问题)
   - 路由灵活性：
     - **Direct Exchange:** 精确 routing key 匹配 (1:1)
     - **Fanout Exchange:** 广播到所有绑定的 Queue (1:N)
     - **Topic Exchange:** 通配符匹配 routing key (如 `order.*.created`)
-    - **Headers Exchange:** 基于消息头属性路由
+    - **Headers Exchange:** 基于消息头属性路由,Headers Exchange指定指定一个名为 x-match 的参数后，通过自定义的键值对去绑定队列，如format: pdf, type: report。
   - 适用：金融订单、支付流程，需要 100% 不丢
 
 * **Kafka (Pull 模式 + Offset 管理):**
-  - 原理：消费者主动拉取消息，Broker 记录消费进度 (Offset)
+  - 原理：消费者主动拉取消息，Broker 记录消费进度 (Offset)，不删除数据，支持数据重放。
   - 优点：消费者自主控制速率，天然支持批量消费；高吞吐
   - Offset 管理：
     - **自动提交:** 消费后自动更新 Offset，可能丢消息 (处理中若宕机)
